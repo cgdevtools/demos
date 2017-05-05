@@ -1,2 +1,2 @@
-# demons
+# demos
 Demos of CGDevTools
