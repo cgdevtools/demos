@@ -5,12 +5,13 @@ interface
 uses
   Classes, SysUtils, IWAppForm, IWApplication, IWColor, IWTypes, IWCGJQThemeSwitcher, Vcl.Controls, Vcl.Forms, IWVCLBaseContainer, IWContainer, IWHTMLContainer, IWHTML40Container,
   IWRegion, IWCGJQControl, IWCGJQRegion, IWCGPanelList, IWCGJQTabs, IWCGOpenLayers, IWCGJQLabel, IWCGJQCheckBox, IWCGJQSlider, IWBaseComponent, IWBaseHTMLComponent,
-  IWBaseHTML40Component, IWCGJQComp, IWCGJQNotification, IWCGJQComboBox, IWCGJQButton, IWCGJQEventBinder, IWCGJQImage, IWCompExtCtrls, IWCGJQDropDown;
+  IWBaseHTML40Component, IWCGJQComp, IWCGJQNotification, IWCGJQComboBox, IWCGJQButton, IWCGJQEventBinder, IWCGJQImage, IWCompExtCtrls, IWCGJQDropDown, IWCGJQMemo;
 
 type
   TOlExampleCmd = (olcmdSimpleMap, olcmdBingMaps, olcmdTiledArcGISMapServer, olcmdSemiTransparentLayer,olcmdStaticImage, olcmdLayerGroup, olcmdControls, olcmdDragRotateZoom, olcmdTileTransitions,
     olcmdIconColors, olcmdScaleLine, olcmdPopup, olcmdDrawShapes, olcmdMagnify, olcmdDragDrop, olcmdAttributions, olcmdCanvasTiles, olcmdClusters, olcmdCustomDrawShape, olcmdMousePosition,
-    olcmdWFS, olcmdExportMap, olcmdGraticule, olcmdOverlay, olcmdSelection, olcmdCartoDB, olcmdGPX);
+    olcmdWFS, olcmdExportMap, olcmdGraticule, olcmdOverlay, olcmdSelection, olcmdCartoDB, olcmdGPX, olcmdLocalizedOpenStreetMap, olcmdCustomAnimation, olcmdCustomPolygonStyles,
+    olcmdVectorLabelDecluttering, olcmdViewAjaxPropControl);
 
   TOlExample = record
     TabIndex: Integer;
@@ -19,7 +20,7 @@ type
   end;
 
 const
-  OlExample: array[0..26] of TOlExample = (
+  OlExample: array[0..31] of TOlExample = (
     ( TabIndex: -1; Caption: 'Simple Map'; Command: olcmdSimpleMap ),
     ( TabIndex: 4; Caption: 'Bing Maps'; Command: olcmdBingMaps),
     ( TabIndex: -1; Caption: 'Tiled ArcGIS MapServer'; Command: olcmdTiledArcGISMapServer ),
@@ -46,7 +47,12 @@ const
     ( TabIndex: -1; Caption: 'Overlay'; Command: olcmdOverlay),
     ( TabIndex: 7; Caption: 'Box Selection'; Command: olcmdSelection),
     ( TabIndex: 8; Caption: 'CartoDB'; Command: olcmdCartoDB),
-    ( TabIndex: 9; Caption: 'GPX Data'; Command: olcmdGPX)
+    ( TabIndex: 9; Caption: 'GPX Data'; Command: olcmdGPX),
+    ( TabIndex: -1; Caption: 'Localized OpenStreetMap'; Command: olcmdLocalizedOpenStreetMap),
+    ( TabIndex: 10; Caption: 'Custom Animation'; Command: olcmdCustomAnimation),
+    ( TabIndex: -1; Caption: 'Custom Polygon Styles'; Command: olcmdCustomPolygonStyles),
+    ( TabIndex: -1; Caption: 'Vector Label Decluttering'; Command: olcmdVectorLabelDecluttering),
+    ( TabIndex: 11; Caption: 'Async View Control'; Command: olcmdViewAjaxPropControl)
   );
 
 type
@@ -104,6 +110,16 @@ type
     cboCartoDbArea: TIWCGJQDropDown;
     IWCGTab10: TIWCGJQTab;
     gpxDataLabel: TIWCGJQLabelEx;
+    IWCGTab11: TIWCGJQTab;
+    btnCustomAnimAddRandomFeature: TIWCGJQButton;
+    IWCGTab12: TIWCGJQTab;
+    IWCGJQButton11: TIWCGJQButton;
+    IWCGJQButton12: TIWCGJQButton;
+    IWCGJQButton13: TIWCGJQButton;
+    IWCGJQButton14: TIWCGJQButton;
+    IWCGJQButton15: TIWCGJQButton;
+    btnAsyncViewGetInfo: TIWCGJQButton;
+    memViewGetInfo: TIWCGJQMemoEx;
     procedure LeftMenuClick(Sender: TObject; AParams: TStringList);
     procedure IWAppFormCreate(Sender: TObject);
     procedure IWCGJQSlider1JQSliderOptionsStop(Sender: TObject; AParams: TStringList);
@@ -125,8 +141,15 @@ type
     procedure OlDragAndDropEvent(Sender: TObject; AParams: TStringList);
     procedure IWCGJQButton10JQButtonOptionsClick(Sender: TObject; AParams: TStringList);
     procedure OlMapExportPNG(Sender: TObject; const ABase64: string);
-    procedure IWTimerTimer(Sender: TObject);
     procedure IWCGJQDropDown1JQDropDownOptionsChange(Sender: TObject; AParams: TStringList);
+    procedure btnCustomAnimAddRandomFeatureJQButtonOptionsClick(Sender: TObject; AParams: TStringList);
+    procedure IWTimerAsyncTimer(Sender: TObject; EventParams: TStringList);
+    procedure IWCGJQButton11JQButtonOptionsClick(Sender: TObject; AParams: TStringList);
+    procedure IWCGJQButton12JQButtonOptionsClick(Sender: TObject; AParams: TStringList);
+    procedure IWCGJQButton13JQButtonOptionsClick(Sender: TObject; AParams: TStringList);
+    procedure IWCGJQButton14JQButtonOptionsClick(Sender: TObject; AParams: TStringList);
+    procedure IWCGJQButton15JQButtonOptionsClick(Sender: TObject; AParams: TStringList);
+    procedure btnAsyncViewGetInfoJQButtonOptionsClick(Sender: TObject; AParams: TStringList);
   private
     FReRenderBinder: Boolean;
     FModToggle: Boolean;
@@ -157,10 +180,39 @@ end;
 
 { TIWForm6 }
 
+procedure TIWForm6.btnAsyncViewGetInfoJQButtonOptionsClick(Sender: TObject; AParams: TStringList);
+var
+  s: string;
+begin
+  s:= 'Center: ' + AParams.Values['center'] + sLineBreak;
+  s:= s + 'Zoom: ' + AParams.Values['zoom'] + sLineBreak;
+  s:= s + 'MinZoom: ' + AParams.Values['minZoom'] + sLineBreak;
+  s:= s + 'MaxZoom: ' + AParams.Values['maxZoom'] + sLineBreak;
+  s:= s + 'Rotation: ' + AParams.Values['rotation'];
+  memViewGetInfo.Text:= s;
+end;
+
+procedure TIWForm6.btnCustomAnimAddRandomFeatureJQButtonOptionsClick(Sender: TObject; AParams: TStringList);
+var
+  Source: TIWCGOlSourceVectorSource;
+begin
+  Source:= Ol.MapOptionsPluggableMap.Layers[1].LayerOptionsVectorLayer.SourceOptionsVectorSource;
+  Source.Features.Clear;
+  with Source.Features.Add do
+  begin
+    GeometryType:= olgeotPoint;
+    GeometryOptionsPoint.Coordinates.X:= FloatToStr(2 * 4500000 * Random - 4500000);
+    Randomize;
+    GeometryOptionsPoint.Coordinates.Y:= FloatToStr(2 * 4500000 * Random - 4500000);
+    RenderAjax;
+  end;
+end;
+
 procedure TIWForm6.IWAppFormCreate(Sender: TObject);
 var
   I: Integer;
   Rec: TOlExample;
+  js: string;
 begin
   for I := Low(OlExample) to High(OlExample) do
   begin
@@ -197,6 +249,47 @@ begin
   end;
   olBingMapsImagerySet.SelectedIndex:= 3; // AerialWithLabels
 
+  with btnAsyncViewGetInfo.JQButtonOptions.OnClick do
+  begin
+
+    with BrowserParams.Add do
+    begin
+      ServerName:= 'center';
+      js:= Ol.MapOptionsPluggableMap.View.jsGetCenter;
+      BrowserScript:= Copy(js, 1, Length(js) - 1); //remove ; from script
+    end;
+
+    with BrowserParams.Add do
+    begin
+      ServerName:= 'maxZoom';
+      js:= Ol.MapOptionsPluggableMap.View.jsGetMaxZoom;
+      BrowserScript:= Copy(js, 1, Length(js) - 1); //remove ; from script
+    end;
+
+    with BrowserParams.Add do
+    begin
+      ServerName:= 'minZoom';
+      js:= Ol.MapOptionsPluggableMap.View.jsGetMinZoom;
+      BrowserScript:= Copy(js, 1, Length(js) - 1); //remove ; from script
+    end;
+
+    with BrowserParams.Add do
+    begin
+      ServerName:= 'rotation';
+      js:= Ol.MapOptionsPluggableMap.View.jsGetRotation;
+      BrowserScript:= Copy(js, 1, Length(js) - 1); //remove ; from script
+    end;
+
+    with BrowserParams.Add do
+    begin
+      ServerName:= 'zoom';
+      js:= Ol.MapOptionsPluggableMap.View.jsGetZoom;
+      BrowserScript:= Copy(js, 1, Length(js) - 1); //remove ; from script
+    end;
+
+  end;
+
+
   ProcessExample(OlExample[0]);
 end;
 
@@ -204,6 +297,33 @@ procedure TIWForm6.IWCGJQButton10JQButtonOptionsClick(Sender: TObject; AParams: 
 begin
   Ol.ExportMapPng;
   IWTimer.Enabled:= True;
+end;
+
+procedure TIWForm6.IWCGJQButton11JQButtonOptionsClick(Sender: TObject; AParams: TStringList);
+begin
+  ol.MapOptionsPluggableMap.View.Center.FromLonLat.Lat:= '40,364625';
+  ol.MapOptionsPluggableMap.View.Center.FromLonLat.Lon:= '-8,454519';
+  ol.MapOptionsPluggableMap.View.ApplyCenter;
+end;
+
+procedure TIWForm6.IWCGJQButton12JQButtonOptionsClick(Sender: TObject; AParams: TStringList);
+begin
+  Ol.MapOptionsPluggableMap.View.Zoom:= Random(18);
+end;
+
+procedure TIWForm6.IWCGJQButton13JQButtonOptionsClick(Sender: TObject; AParams: TStringList);
+begin
+  Ol.MapOptionsPluggableMap.View.MinZoom:= 5;
+end;
+
+procedure TIWForm6.IWCGJQButton14JQButtonOptionsClick(Sender: TObject; AParams: TStringList);
+begin
+  Ol.MapOptionsPluggableMap.View.MaxZoom:= 8;
+end;
+
+procedure TIWForm6.IWCGJQButton15JQButtonOptionsClick(Sender: TObject; AParams: TStringList);
+begin
+  Ol.MapOptionsPluggableMap.View.Rotation:= Random(360);
 end;
 
 procedure TIWForm6.IWCGJQButton1JQButtonOptionsClick(Sender: TObject; AParams: TStringList);
@@ -298,7 +418,7 @@ begin
     Ol.MapOptionsPluggableMap.Layers[1].LayerOptionsGroup.Layers[I].LayerOptions.Opacity:= LOpacity;
 end;
 
-procedure TIWForm6.IWTimerTimer(Sender: TObject);
+procedure TIWForm6.IWTimerAsyncTimer(Sender: TObject; EventParams: TStringList);
 begin
   if FCurr.Command = olcmdExportMap then
   begin
@@ -387,7 +507,6 @@ begin
   FReRenderBinder:= False;
   IsAsync:= CGIsCallBackProcessing;
 
-  Ol.ResetJSonProps;
   JQNoty.JQNotificationNotyOptions.CloseNotification;
   OlPopup.Visible:= False;
   OlOverlayMarker.Visible:= False;
@@ -425,6 +544,8 @@ begin
 
   if IsAsync then
     CGCallBackDisableAjaxResponse;
+
+  Ol.ResetJSonProps;
 
   try
     case ARec.Command of
@@ -500,8 +621,8 @@ begin
              LayerOptionsTileLayer.SourceOptionsTileJSON.Transition:= 0;
            end;
 
-           Ol.MapOptionsPluggableMap.View.Center.FromLonLat.Lat:= '-77,93255';
-           Ol.MapOptionsPluggableMap.View.Center.FromLonLat.Lon:= '37,9555';
+           Ol.MapOptionsPluggableMap.View.Center.FromLonLat.Lat:= '37,9555';
+           Ol.MapOptionsPluggableMap.View.Center.FromLonLat.Lon:= '-77,93255';
            Ol.MapOptionsPluggableMap.View.Zoom:= 7;
         end;
       olcmdStaticImage:
@@ -565,8 +686,8 @@ begin
              GroupLayer.LayerOptionsTileLayer.SourceOptionsTileJSON.CrossOrigin:= 'anonymous';
            end;
 
-           Ol.MapOptionsPluggableMap.View.Center.FromLonLat.Lat:= '37,40570';
-           Ol.MapOptionsPluggableMap.View.Center.FromLonLat.Lon:= '8,81566';
+           Ol.MapOptionsPluggableMap.View.Center.FromLonLat.Lat:= '8,81566';
+           Ol.MapOptionsPluggableMap.View.Center.FromLonLat.Lon:= '37,40570';
            Ol.MapOptionsPluggableMap.View.Zoom:= 4;
         end;
 
@@ -658,8 +779,8 @@ begin
              with LayerOptionsVectorLayer.SourceOptionsVectorSource.Features.Add do
              begin
                GeometryType:= olgeotPoint;
-               GeometryOptionsPoint.Coordinates.FromLonLat.Lat:= '12,5';
-               GeometryOptionsPoint.Coordinates.FromLonLat.Lon:= '41,9';
+               GeometryOptionsPoint.Coordinates.FromLonLat.Lat:= '41,9';
+               GeometryOptionsPoint.Coordinates.FromLonLat.Lon:= '12,5';
                Style.ImageType:= olsitIcon;
                Style.ImageOptionsIcon.Color.Color:= '#8959A8';
                Style.ImageOptionsIcon.CrossOrigin:= 'anonymous';
@@ -669,8 +790,8 @@ begin
              with LayerOptionsVectorLayer.SourceOptionsVectorSource.Features.Add do
              begin
                GeometryType:= olgeotPoint;
-               GeometryOptionsPoint.Coordinates.FromLonLat.Lat:= '-0,12755';
-               GeometryOptionsPoint.Coordinates.FromLonLat.Lon:= '51,507222';
+               GeometryOptionsPoint.Coordinates.FromLonLat.Lat:= '51,507222';
+               GeometryOptionsPoint.Coordinates.FromLonLat.Lon:= '-0,12755';
                Style.ImageType:= olsitIcon;
                Style.ImageOptionsIcon.Color.Color:= '#4271AE';
                Style.ImageOptionsIcon.CrossOrigin:= 'anonymous';
@@ -681,8 +802,8 @@ begin
              with LayerOptionsVectorLayer.SourceOptionsVectorSource.Features.Add do
              begin
                GeometryType:= olgeotPoint;
-               GeometryOptionsPoint.Coordinates.FromLonLat.Lat:= '-3,683333';
-               GeometryOptionsPoint.Coordinates.FromLonLat.Lon:= '40,4';
+               GeometryOptionsPoint.Coordinates.FromLonLat.Lat:= '40,4';
+               GeometryOptionsPoint.Coordinates.FromLonLat.Lon:= '-3,683333';
                Style.ImageType:= olsitIcon;
                Style.ImageOptionsIcon.Color.ColorRGB.Red:= '113';
                Style.ImageOptionsIcon.Color.ColorRGB.Green:= '140';
@@ -693,8 +814,8 @@ begin
 
            end;
 
-           Ol.MapOptionsPluggableMap.View.Center.FromLonLat.Lat:= '2,896372';
-           Ol.MapOptionsPluggableMap.View.Center.FromLonLat.Lon:= '44,60240';
+           Ol.MapOptionsPluggableMap.View.Center.FromLonLat.Lat:= '44,60240';
+           Ol.MapOptionsPluggableMap.View.Center.FromLonLat.Lon:= '2,896372';
            Ol.MapOptionsPluggableMap.View.Zoom:= 3;
         end;
 
@@ -831,8 +952,8 @@ begin
           LayerOptionsTileLayer.SourceOptionsBingMaps.Key:= BingMapsKey;
           LayerOptionsTileLayer.SourceOptionsBingMaps.ImagerySet:= 'Aerial';
 
-          Ol.MapOptionsPluggableMap.View.Center.FromLonLat.Lat := '-109';
-          Ol.MapOptionsPluggableMap.View.Center.FromLonLat.Lon := '46,5';
+          Ol.MapOptionsPluggableMap.View.Center.FromLonLat.Lat := '46,5';
+          Ol.MapOptionsPluggableMap.View.Center.FromLonLat.Lon := '-109';
           Ol.MapOptionsPluggableMap.View.Zoom := 6;
 
           JS.Add ('function(event) {');
@@ -885,11 +1006,11 @@ begin
         JS.Add ('function(evt) {');
         JS.Add ('  if (event.which === 38) {');
         JS.Add ('    radius = Math.min(radius + 5, 150);');
-        JS.AddF('    %s.ol.render();', [Ol.OlJsObjName]);
+        JS.AddF('    %s.olmap.render();', [Ol.OlJsObjName]);
         JS.Add ('    event.preventDefault();');
         JS.Add ('  } else if (evt.which === 40) {');
         JS.Add ('    radius = Math.max(radius - 5, 25);');
-        JS.AddF('    %s.ol.render();', [Ol.OlJsObjName]);
+        JS.AddF('    %s.olmap.render();', [Ol.OlJsObjName]);
         JS.Add ('    event.preventDefault();');
         JS.Add ('  }');
         JS.Add ('}');
@@ -903,8 +1024,8 @@ begin
         // mousemove
         JS.Clear;
         JS.Add ('function(event) {');
-        JS.AddF('  mousePosition = %s.ol.getEventPixel(event);', [Ol.OlJsObjName]);
-        JS.AddF('  %s.ol.render();', [Ol.OlJsObjName]);
+        JS.AddF('  mousePosition = %s.olmap.getEventPixel(event);', [Ol.OlJsObjName]);
+        JS.AddF('  %s.olmap.render();', [Ol.OlJsObjName]);
         JS.Add ('}');
 
         with IWCGJQEventBinder1.ElementList.Add do
@@ -917,7 +1038,7 @@ begin
         JS.Clear;
         JS.Add ('function(event) {');
         JS.Add ('  mousePosition = null;');
-        JS.AddF('  %s.ol.render();', [Ol.OlJsObjName]);
+        JS.AddF('  %s.olmap.render();', [Ol.OlJsObjName]);
         JS.Add ('}');
 
         with IWCGJQEventBinder1.ElementList.Add do
@@ -1004,8 +1125,8 @@ begin
           LayerOptionsTileLayer.SourceOptionsTileDebug.TileGridFromLayerSourceIndex:= 0;
         end;
 
-        Ol.MapOptionsPluggableMap.View.Center.FromLonLat.Lat:= '-0,1275';
-        Ol.MapOptionsPluggableMap.View.Center.FromLonLat.Lon:= '51,507222';
+        Ol.MapOptionsPluggableMap.View.Center.FromLonLat.Lat:= '51,507222';
+        Ol.MapOptionsPluggableMap.View.Center.FromLonLat.Lon:= '-0,1275';
         Ol.MapOptionsPluggableMap.View.Zoom:= 10;
       end;
     olcmdClusters:
@@ -1215,8 +1336,8 @@ begin
           ShowLabels:= True;
         end;
 
-        Ol.MapOptionsPluggableMap.View.Center.FromLonLat.Lat:= '4,8';
-        Ol.MapOptionsPluggableMap.View.Center.FromLonLat.Lon:= '47,75';
+        Ol.MapOptionsPluggableMap.View.Center.FromLonLat.Lat:= '47,75';
+        Ol.MapOptionsPluggableMap.View.Center.FromLonLat.Lon:= '4,8';
         Ol.MapOptionsPluggableMap.View.Zoom:= 5;
 
       end;
@@ -1230,8 +1351,8 @@ begin
 
         with Ol.MapOptionsPluggableMap.Overlays.Add do
         begin
-          Position.FromLonLat.Lat:= '16,3725';
-          Position.FromLonLat.Lon:= '48,208889';
+          Position.FromLonLat.Lat:= '48,208889';
+          Position.FromLonLat.Lon:= '16,3725';
           Positioning:= OP_CENTER_CENTER;
           StopEvent:= False;
           Element:= OlOverlayMarker;
@@ -1239,8 +1360,8 @@ begin
 
         with Ol.MapOptionsPluggableMap.Overlays.Add do
         begin
-          Position.FromLonLat.Lat:= '16,3725';
-          Position.FromLonLat.Lon:= '48,208889';
+          Position.FromLonLat.Lat:= '48,208889';
+          Position.FromLonLat.Lon:= '16,3725';
           Element:= OlOverlayMarkerLabel;
         end;
 
@@ -1357,9 +1478,9 @@ begin
           JS.Add( '  if (evt.dragging) {');
           JS.Add( '    return;');
           JS.Add( '  }');
-          JS.AddF('  var pixel = %s.ol.getEventPixel(evt.originalEvent);', [Ol.OlJsObjName]);
+          JS.AddF('  var pixel = %s.olmap.getEventPixel(evt.originalEvent);', [Ol.OlJsObjName]);
           JS.Add( '  var features = [];');
-          JS.AddF('  %s.ol.forEachFeatureAtPixel(pixel, function(feature) {', [Ol.OlJsObjName]);
+          JS.AddF('  %s.olmap.forEachFeatureAtPixel(pixel, function(feature) {', [Ol.OlJsObjName]);
           JS.Add( '    features.push(feature);');
           JS.Add( '  });');
           JS.Add( '  if (features.length > 0) {');
@@ -1368,10 +1489,10 @@ begin
           JS.Add( '      info.push(features[i].get("desc"));');
           JS.Add( '    }');
           JS.AddF('    %s.innerHTML = info.join(", ") || "(unknown)";', [gpxDataLabel.GetIDJQueryElem]);
-          JS.AddF('    %s.ol.getTarget().style.cursor = "pointer";', [Ol.OlJsObjName]);
+          JS.AddF('    %s.olmap.getTarget().style.cursor = "pointer";', [Ol.OlJsObjName]);
           JS.Add( '  } else {');
           JS.AddF('    %s.innerHTML = "&nbsp;";', [gpxDataLabel.GetIDJQueryElem]);
-          JS.AddF('    %s.ol.getTarget().style.cursor = "";', [Ol.OlJsObjName]);
+          JS.AddF('    %s.olmap.getTarget().style.cursor = "";', [Ol.OlJsObjName]);
           JS.Add( '  }');
           JS.Add( '}');
           Ol.MapOptionsPluggableMap.Events.OnPointerMove.Script:= JS.Text;
@@ -1383,6 +1504,143 @@ begin
         Ol.MapOptionsPluggableMap.View.Center.Y:= '5228379,045749711';
         Ol.MapOptionsPluggableMap.View.Zoom:= 12;
 
+      end;
+    olcmdLocalizedOpenStreetMap:
+      begin
+        with Ol.MapOptionsPluggableMap.Layers.Add do
+        begin
+          LayerType:= olltTileLayer;
+          LayerOptionsTileLayer.SourceType:= olststOSM;
+          LayerOptionsTileLayer.SourceOptionsOSM.Attributions.Add('All maps © <a href="https://www.opencyclemap.org/">OpenCycleMap</a>');
+          LayerOptionsTileLayer.SourceOptionsOSM.Attributions.Add(OSMATTRIBUTION);
+          LayerOptionsTileLayer.SourceOptionsOSM.Url:= 'https://tile.thunderforest.com/cycle/{z}/{x}/{y}.png?apikey=079b50f8a26d494b853667143b056dac';
+        end;
+
+        with Ol.MapOptionsPluggableMap.Layers.Add do
+        begin
+          LayerType:= olltTileLayer;
+          LayerOptionsTileLayer.SourceType:= olststOSM;
+          LayerOptionsTileLayer.SourceOptionsOSM.Attributions.Add('All maps © <a href="http://www.openseamap.org/">OpenSeaMap</a>');
+          LayerOptionsTileLayer.SourceOptionsOSM.Attributions.Add(OSMATTRIBUTION);
+          LayerOptionsTileLayer.SourceOptionsOSM.Url:= 'https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png';
+          LayerOptionsTileLayer.SourceOptionsOSM.Opaque:= False;
+        end;
+
+        Ol.MapOptionsPluggableMap.View.Center.X:= '-244780,24508882355';
+        Ol.MapOptionsPluggableMap.View.Center.Y:= '5986452,183179816';
+        Ol.MapOptionsPluggableMap.View.Zoom:= 15;
+        Ol.MapOptionsPluggableMap.View.MaxZoom:= 158;
+
+      end;
+    olcmdCustomAnimation:
+      begin
+        with Ol.MapOptionsPluggableMap.Layers.Add do
+        begin
+          LayerType:= olltTileLayer;
+          LayerOptionsTileLayer.SourceType:= olststOSM;
+        end;
+
+        with Ol.MapOptionsPluggableMap.Layers.Add do
+        begin
+          LayerType:= olltVectorLayer;
+          LayerOptionsVectorLayer.SourceType:= olsvtVectorSource;
+          LayerOptionsVectorLayer.SourceOptionsVectorSource.WrapX:= False;
+
+          JS:= TIWCGJScript.Create;
+          try
+            JS.Add( 'function(e) {');
+            JS.Add( '  var feature = e.feature;');
+            JS.Add( '  var start = new Date().getTime();');
+            JS.AddF('  var listenerKey = %s.olmap.on("postcompose", function(event){',[Ol.OlJsObjName]);
+            JS.Add( '    var vectorContext = event.vectorContext;');
+            JS.Add( '    var frameState = event.frameState;');
+            JS.Add( '    var flashGeom = feature.getGeometry().clone();');
+            JS.Add( '    var elapsed = frameState.time - start;');
+            JS.Add( '    var elapsedRatio = elapsed / 3000;');
+            JS.Add( '    var radius = ol.easing.easeOut(elapsedRatio) * 25 + 5;');
+            JS.Add( '    var opacity = ol.easing.easeOut(1 - elapsedRatio);');
+            JS.Add( '    var style = new ol.style.Style({ image: new ol.style.Circle({ radius: radius, stroke: new ol.style.Stroke({ color: "rgba(255, 0, 0, " + opacity + ")", width: 0.25 + opacity }) }) });');
+            JS.Add( '    vectorContext.setStyle(style);');
+            JS.Add( '    vectorContext.drawGeometry(flashGeom);');
+            JS.Add( '    if (elapsed > 3000) {');
+            JS.Add( '      ol.Observable.unByKey(listenerKey);');
+            JS.Add( '      return;');
+            JS.Add( '    }');
+            JS.AddF('    %s.olmap.render();', [Ol.OlJsObjName]);
+            JS.Add( '  });');
+            JS.Add( '}');
+
+            LayerOptionsVectorLayer.SourceOptionsVectorSource.Events.OnAddFeature.Script:= JS.Text;
+          finally
+            JS.Free;
+          end;
+          //
+        end;
+
+        Ol.MapOptionsPluggableMap.View.Center.X:= '0';
+        Ol.MapOptionsPluggableMap.View.Center.Y:= '0';
+        Ol.MapOptionsPluggableMap.View.Zoom:= 2;
+      end;
+    olcmdCustomPolygonStyles:
+      begin
+        with Ol.MapOptionsPluggableMap.Layers.Add do
+        begin
+          LayerType:= olltVectorLayer;
+          LayerOptionsVectorLayer.SourceType:= olsvtVectorSource;
+          LayerOptionsVectorLayer.SourceOptionsVectorSource.FeaturesJs:= '(new ol.format.GeoJSON()).readFeatures({"type":"FeatureCollection","crs":{"type":"name","properties":{"name":"EPSG:3857"}},'+
+          '"features":[{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-5000000,6000000],[-5000000,8000000],[-3000000,8000000],[-3000000,6000000],[-5000000,6000000]]]}},' +
+          '{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-2000000,6000000],[-2000000,8000000],[0,8000000],[0,6000000],[-2000000,6000000]]]}},{"type":"Feature","geometry":'+
+          '{"type":"Polygon","coordinates":[[[1000000,6000000],[1000000,8000000],[3000000,8000000],[3000000,6000000],[1000000,6000000]]]}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":' +
+          '[[[-2000000,-1000000],[-1000000,1000000],[0,-1000000],[-2000000,-1000000]]]}}]})';
+
+          with LayerOptionsVectorLayer.Style.Add do
+          begin
+            Stroke.Color.Color:= 'blue';
+            Stroke.Width:= 3;
+            Fill.Color.ColorRGB.Red:= '0';
+            Fill.Color.ColorRGB.Green:= '0';
+            Fill.Color.ColorRGB.Blue:= '255';
+            Fill.Color.ColorRGB.Alpha:= 0.1;
+          end;
+
+          with LayerOptionsVectorLayer.Style.Add do
+          begin
+            ImageType:= olsitCircleStyle;
+            ImageOptionsCircleStyle.Radius:= 5;
+            ImageOptionsCircleStyle.Fill.Color.Color:= 'orange';
+            GeometryJs:= 'function(feature) { return new ol.geom.MultiPoint(feature.getGeometry().getCoordinates()[0]); }';
+          end;
+        end;
+
+        Ol.MapOptionsPluggableMap.View.Center.X:= '0';
+        Ol.MapOptionsPluggableMap.View.Center.Y:= '3000000';
+        Ol.MapOptionsPluggableMap.View.Zoom:= 2;
+      end;
+    olcmdVectorLabelDecluttering:
+      begin
+        with Ol.MapOptionsPluggableMap.Layers.Add do
+        begin
+          LayerType:= olltVectorLayer;
+          LayerOptionsVectorLayer.SourceType:= olsvtVectorSource;
+          LayerOptionsVectorLayer.SourceOptionsVectorSource.Url:= 'https://openlayers.org/en/latest/examples/data/geojson/countries.geojson';
+          LayerOptionsVectorLayer.SourceOptionsVectorSource.FormatType:= olftGeoJSON;
+          // vldLabelStyle, vldCountryStyle & vldStyle defined on ExtraHeader
+          LayerOptionsVectorLayer.StyleFn.Script:= 'function(feature) { vldLabelStyle.getText().setText(feature.get("name")); return vldStyle; }';
+        end;
+        Ol.MapOptionsPluggableMap.View.Center.X:= '0';
+        Ol.MapOptionsPluggableMap.View.Center.Y:= '0';
+        Ol.MapOptionsPluggableMap.View.Zoom:= 2;
+      end;
+    olcmdViewAjaxPropControl:
+      begin
+        with Ol.MapOptionsPluggableMap.Layers.Add do
+        begin
+          LayerType:= olltTileLayer;
+          LayerOptionsTileLayer.SourceType:= olststOSM;
+        end;
+        Ol.MapOptionsPluggableMap.View.Center.X:= '0';
+        Ol.MapOptionsPluggableMap.View.Center.Y:= '0';
+        Ol.MapOptionsPluggableMap.View.Zoom:= 5;
       end;
     end;
   finally

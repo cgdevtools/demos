@@ -44,6 +44,55 @@ object IWForm6: TIWForm6
     '          })'
     '        })'
     '}'
+    ''
+    '// Vector Label Decluttering'
+    'var vldLabelStyle = new ol.style.Style({'
+    '        geometry: function(feature) {'
+    '          var geometry = feature.getGeometry();'
+    '          if (geometry.getType() == '#39'MultiPolygon'#39') {'
+    
+      '            // Only render label for the widest polygon of a mul' +
+      'tipolygon'
+    '            var polygons = geometry.getPolygons();'
+    '            var widest = 0;'
+    '            for (var i = 0, ii = polygons.length; i < ii; ++i) {'
+    '              var polygon = polygons[i];'
+    
+      '              var width =ol.extent.getWidth(polygon.getExtent())' +
+      ';'
+    '              if (width > widest) {'
+    '                widest = width;'
+    '                geometry = polygon;'
+    '              }'
+    '            }'
+    '          }'
+    '          return geometry;'
+    '        },'
+    '        text: new ol.style.Text({'
+    '          font: '#39'12px Calibri,sans-serif'#39','
+    '          overflow: true,'
+    '          fill: new ol.style.Fill({'
+    '            color: '#39'#000'#39
+    '          }),'
+    '          stroke: new ol.style.Stroke({'
+    '            color: '#39'#fff'#39','
+    '            width: 3'
+    '          })'
+    '        })'
+    '      });'
+    ''
+    'var vldCountryStyle = new ol.style.Style({'
+    '        fill: new ol.style.Fill({'
+    '          color: '#39'rgba(255, 255, 255, 0.6)'#39
+    '        }),'
+    '        stroke: new ol.style.Stroke({'
+    '          color: '#39'#319FD3'#39','
+    '          width: 1'
+    '        })'
+    '      });'
+    ''
+    'var vldStyle = [vldLabelStyle, vldCountryStyle];'
+    ''
     '</script>')
   OnCreate = IWAppFormCreate
   Background.Fixed = False
@@ -188,7 +237,7 @@ object IWForm6: TIWForm6
       Align = alClient
       BorderOptions.NumericWidth = 0
       BorderOptions.Style = cbsNone
-      ActiveTab = IWCGTab10
+      ActiveTab = IWCGTab12
       object IWCGTab1: TIWCGJQTab
         Css = ''
         Version = '1.0'
@@ -554,10 +603,6 @@ object IWForm6: TIWForm6
         Caption = 'IWCGTab10'
         TabIndex = 9
         Tabs = OlTabsTop
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object gpxDataLabel: TIWCGJQLabelEx
           Left = 16
           Top = 44
@@ -568,28 +613,127 @@ object IWForm6: TIWForm6
           Text = ''
         end
       end
+      object IWCGTab11: TIWCGJQTab
+        Css = ''
+        Version = '1.0'
+        Caption = 'IWCGTab11'
+        TabIndex = 10
+        Tabs = OlTabsTop
+        object btnCustomAnimAddRandomFeature: TIWCGJQButton
+          Left = 48
+          Top = 44
+          Width = 150
+          Height = 30
+          TabOrder = 38
+          Version = '1.0'
+          JQButtonOptions.Label_ = 'Add Random Feature'
+          JQButtonOptions.OnClick.OnEvent = btnCustomAnimAddRandomFeatureJQButtonOptionsClick
+        end
+      end
+      object IWCGTab12: TIWCGJQTab
+        Css = ''
+        Version = '1.0'
+        Caption = 'IWCGTab12'
+        TabIndex = 11
+        Tabs = OlTabsTop
+        object IWCGJQButton11: TIWCGJQButton
+          Left = 52
+          Top = 23
+          Width = 150
+          Height = 30
+          TabOrder = 39
+          Version = '1.0'
+          JQButtonOptions.Label_ = 'Set Center'
+          JQButtonOptions.OnClick.OnEvent = IWCGJQButton11JQButtonOptionsClick
+        end
+        object IWCGJQButton12: TIWCGJQButton
+          Left = 52
+          Top = 59
+          Width = 150
+          Height = 30
+          TabOrder = 40
+          Version = '1.0'
+          JQButtonOptions.Label_ = 'Random Zoom'
+          JQButtonOptions.OnClick.OnEvent = IWCGJQButton12JQButtonOptionsClick
+        end
+        object IWCGJQButton13: TIWCGJQButton
+          Left = 52
+          Top = 95
+          Width = 150
+          Height = 30
+          TabOrder = 41
+          Version = '1.0'
+          JQButtonOptions.Label_ = 'Set Min Zoom'
+          JQButtonOptions.OnClick.OnEvent = IWCGJQButton13JQButtonOptionsClick
+        end
+        object IWCGJQButton14: TIWCGJQButton
+          Left = 52
+          Top = 131
+          Width = 150
+          Height = 30
+          TabOrder = 42
+          Version = '1.0'
+          JQButtonOptions.Label_ = 'Set Max Zoom'
+          JQButtonOptions.OnClick.OnEvent = IWCGJQButton14JQButtonOptionsClick
+        end
+        object IWCGJQButton15: TIWCGJQButton
+          Left = 52
+          Top = 167
+          Width = 150
+          Height = 30
+          TabOrder = 43
+          Version = '1.0'
+          JQButtonOptions.Label_ = 'Random Rotation'
+          JQButtonOptions.OnClick.OnEvent = IWCGJQButton15JQButtonOptionsClick
+        end
+        object btnAsyncViewGetInfo: TIWCGJQButton
+          Left = 52
+          Top = 263
+          Width = 150
+          Height = 30
+          TabOrder = 44
+          Version = '1.0'
+          JQButtonOptions.Label_ = 'Get Info'
+          JQButtonOptions.OnClick.OnEvent = btnAsyncViewGetInfoJQButtonOptionsClick
+        end
+        object memViewGetInfo: TIWCGJQMemoEx
+          Left = 18
+          Top = 316
+          Width = 225
+          Height = 205
+          TabOrder = 45
+          Css = ''
+          Version = '1.0'
+          ZIndex = 0
+          BGColor = clNone
+          Editable = False
+          Required = False
+          SubmitOnAsyncEvent = True
+          ReadOnly = True
+        end
+      end
     end
   end
   object JQNoty: TIWCGJQNotification
     Version = '1.0'
     JQNotificationType = jqntNoty
     JQNotificationOptions.Type_ = jqnntInformation
-    Left = 976
-    Top = 348
+    Left = 56
+    Top = 268
   end
   object IWCGJQEventBinder1: TIWCGJQEventBinder
     Version = '1.0'
     ElementList = <>
-    Left = 1048
-    Top = 464
+    Left = 128
+    Top = 384
   end
   object IWTimer: TIWTimer
     Enabled = False
     Interval = 500
     ShowAsyncLock = False
-    OnTimer = IWTimerTimer
-    Left = 1080
-    Top = 364
+    OnAsyncTimer = IWTimerAsyncTimer
+    Left = 160
+    Top = 284
   end
   object IWCGJQEventBinder2: TIWCGJQEventBinder
     Version = '1.0'
@@ -601,7 +745,7 @@ object IWForm6: TIWForm6
           'd('#39'>li'#39').removeClass("ol-example-item-active");'#13#10'  $this.addClas' +
           's("ol-example-item-active");  '#13#10'}'
       end>
-    Left = 1096
-    Top = 252
+    Left = 176
+    Top = 172
   end
 end
