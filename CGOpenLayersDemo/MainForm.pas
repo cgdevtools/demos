@@ -929,7 +929,6 @@ begin
           begin
             Active:= False;
             InteractionType:= olitTranslate;
-//            InteractionOptionsTranslate.UseFeaturesFromInteractionSelectIndex:= LInteractionSelect.Index;
           end;
         end;
 
