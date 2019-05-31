@@ -13,6 +13,23 @@ object IWForm6: TIWForm6
     '    background: #f39c12;'
     '    color: #FFF;'
     '}'
+    ''
+    '#OLPOPUP:before{'
+    '    content: "";'
+    '    width: 30px;'
+    '    height: 30px;'
+    '    position: absolute;'
+    '    top: 100%;'
+    '    left: 50%;'
+    '    border: 1px solid #cacaca;'
+    '    margin-left: -15px;'
+    '    margin-top: -15px;'
+    '    background: #f2f5f7;'
+    '    transform: rotate(45deg);'
+    '    border-left-width: 0;'
+    '    border-top-width: 0;'
+    '}'
+    ''
     '</style>'
     ''
     '<script>'
@@ -177,6 +194,8 @@ object IWForm6: TIWForm6
         Visible = False
         TabOrder = 14
         Version = '1.0'
+        Style.Strings = (
+          'border:1px solid #cacaca')
         object IWCGJQLabelEx3: TIWCGJQLabelEx
           Left = 48
           Top = 48

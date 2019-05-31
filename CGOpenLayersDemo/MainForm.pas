@@ -239,7 +239,7 @@ begin
   // adjust position of popup on olcmdPopup
   OlPopup.Style.Values['position']:= 'relative';
   OlPopup.Style.Values['left']:= '-50%';
-  OlPopup.Style.Values['top']:= '-' + (IntToStr(OlPopup.Height + 10)) + 'px';
+  OlPopup.Style.Values['top']:= '-' + (IntToStr(OlPopup.Height + 22)) + 'px';
 
   // olBingMapsImagerySet
   for I := 0 to Length(LBingMapsStyles)-1 do
