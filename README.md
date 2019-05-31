@@ -1,2 +1,0 @@
-# demos
-Demos of CGDevTools
