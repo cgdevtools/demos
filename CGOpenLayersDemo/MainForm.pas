@@ -11,7 +11,7 @@ type
   TOlExampleCmd = (olcmdSimpleMap, olcmdBingMaps, olcmdTiledArcGISMapServer, olcmdSemiTransparentLayer,olcmdStaticImage, olcmdLayerGroup, olcmdControls, olcmdDragRotateZoom, olcmdTileTransitions,
     olcmdIconColors, olcmdScaleLine, olcmdPopup, olcmdDrawShapes, olcmdMagnify, olcmdDragDrop, olcmdAttributions, olcmdCanvasTiles, olcmdClusters, olcmdCustomDrawShape, olcmdMousePosition,
     olcmdWFS, olcmdExportMap, olcmdGraticule, olcmdOverlay, olcmdSelection, olcmdCartoDB, olcmdGPX, olcmdLocalizedOpenStreetMap, olcmdCustomAnimation, olcmdCustomPolygonStyles,
-    olcmdVectorLabelDecluttering, olcmdViewAjaxPropControl);
+    olcmdVectorLabelDecluttering, olcmdViewAjaxPropControl, olcmdMeasure);
 
   TOlExample = record
     TabIndex: Integer;
@@ -20,7 +20,7 @@ type
   end;
 
 const
-  OlExample: array[0..31] of TOlExample = (
+  OlExample: array[0..32] of TOlExample = (
     ( TabIndex: -1; Caption: 'Simple Map'; Command: olcmdSimpleMap ),
     ( TabIndex: 4; Caption: 'Bing Maps'; Command: olcmdBingMaps),
     ( TabIndex: -1; Caption: 'Tiled ArcGIS MapServer'; Command: olcmdTiledArcGISMapServer ),
@@ -52,7 +52,8 @@ const
     ( TabIndex: 10; Caption: 'Custom Animation'; Command: olcmdCustomAnimation),
     ( TabIndex: -1; Caption: 'Custom Polygon Styles'; Command: olcmdCustomPolygonStyles),
     ( TabIndex: -1; Caption: 'Vector Label Decluttering'; Command: olcmdVectorLabelDecluttering),
-    ( TabIndex: 11; Caption: 'Async View Control'; Command: olcmdViewAjaxPropControl)
+    ( TabIndex: 11; Caption: 'Async View Control'; Command: olcmdViewAjaxPropControl),
+    ( TabIndex: 12; Caption: 'Measure'; Command: olcmdMeasure)
   );
 
 type
@@ -120,6 +121,8 @@ type
     IWCGJQButton15: TIWCGJQButton;
     btnAsyncViewGetInfo: TIWCGJQButton;
     memViewGetInfo: TIWCGJQMemoEx;
+    IWCGTab13: TIWCGJQTab;
+    IWCGJQComboBoxEx2: TIWCGJQComboBoxEx;
     procedure LeftMenuClick(Sender: TObject; AParams: TStringList);
     procedure IWAppFormCreate(Sender: TObject);
     procedure IWCGJQSlider1JQSliderOptionsStop(Sender: TObject; AParams: TStringList);
@@ -150,6 +153,7 @@ type
     procedure IWCGJQButton14JQButtonOptionsClick(Sender: TObject; AParams: TStringList);
     procedure IWCGJQButton15JQButtonOptionsClick(Sender: TObject; AParams: TStringList);
     procedure btnAsyncViewGetInfoJQButtonOptionsClick(Sender: TObject; AParams: TStringList);
+    procedure IWCGJQComboBoxEx2JQComboBoxExOptionsChange(Sender: TObject; AParams: TStringList);
   private
     FReRenderBinder: Boolean;
     FModToggle: Boolean;
@@ -158,6 +162,7 @@ type
     FSavedFeatures: string;
     FCurr: TOlExample;
     FMapExportPngBase64: string;
+    FMeasureExample: boolean;
     procedure ProcessExample(ARec: TOlExample);
   public
   end;
@@ -395,6 +400,14 @@ begin
   Ol.MapOptionsPluggableMap.Controls[0].ControlOptionsScaleLine.Units:= IWCGJQComboBoxEx1.SelectedItem.Value;
 end;
 
+procedure TIWForm6.IWCGJQComboBoxEx2JQComboBoxExOptionsChange(Sender: TObject; AParams: TStringList);
+begin
+  if IWCGJQComboBoxEx2.SelectedItem.Value = 'area' then
+    CGAddJavaScriptToAjaxResponse('MeasureObj.changeDrawType("area");')
+  else
+    CGAddJavaScriptToAjaxResponse('MeasureObj.changeDrawType("line");');
+end;
+
 procedure TIWForm6.IWCGJQDropDown1JQDropDownOptionsChange(Sender: TObject; AParams: TStringList);
 var
   Idx: Integer;
@@ -443,6 +456,8 @@ begin
   Ol.AjaxReRender(True,False);
   if FReRenderBinder then
     IWCGJQEventBinder1.AjaxReRender;
+  if FMeasureExample then
+    CGAddJavaScriptToAjaxResponse( Format('MeasureObj.init(%s.olmap, %s.getSource());', [Ol.OlJsObjName, Ol.MapOptionsPluggableMap.Layers[1].LayerOptions.jsGetOlObj]));
 end;
 
 procedure TIWForm6.olBingMapsImagerySetJQComboBoxExOptionsChange(Sender: TObject; AParams: TStringList);
@@ -504,6 +519,7 @@ var
   AuxJson: ISuperObject;
 begin
   FCurr:= ARec;
+  FMeasureExample:= False;
   FReRenderBinder:= False;
   IsAsync:= CGIsCallBackProcessing;
 
@@ -1641,7 +1657,41 @@ begin
         Ol.MapOptionsPluggableMap.View.Center.Y:= '0';
         Ol.MapOptionsPluggableMap.View.Zoom:= 5;
       end;
+    olcmdMeasure:
+      begin
+        FMeasureExample:= True;
+        with Ol.MapOptionsPluggableMap.Layers.Add do
+        begin
+          LayerType:= olltTileLayer;
+          LayerOptionsTileLayer.SourceType:= olststOSM;
+        end;
+
+        with Ol.MapOptionsPluggableMap.Layers.Add do
+        begin
+          LayerType:= olltVectorLayer;
+          LayerOptionsVectorLayer.SourceType:= olsvtVectorSource;
+          with LayerOptionsVectorLayer.Style.Add do
+          begin
+            Fill.Color.ColorRGB.Red:= '255';
+            Fill.Color.ColorRGB.Green:= '255';
+            Fill.Color.ColorRGB.Blue:= '255';
+            Fill.Color.ColorRGB.Alpha:= 0.2;
+            Stroke.Color.Color:= '#ffcc33';
+            Stroke.Width:= 2;
+            ImageType:= olsitCircleStyle;
+            ImageOptionsCircleStyle.Radius:= 7;
+            ImageOptionsCircleStyle.Fill.Color.Color:= '#ffcc33';
+          end;
+        end;
+
+        // since this example is complex & require a lot of javascript usage the rest of code in
+
+        Ol.MapOptionsPluggableMap.View.Center.X:= '-11000000';
+        Ol.MapOptionsPluggableMap.View.Center.Y:= '4600000';
+        Ol.MapOptionsPluggableMap.View.Zoom:= 15;
+      end;
     end;
+
   finally
     if IsAsync then
       CGCallBackEnableAjaxResponse;

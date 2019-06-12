@@ -110,6 +110,200 @@ object IWForm6: TIWForm6
     ''
     'var vldStyle = [vldLabelStyle, vldCountryStyle];'
     ''
+    '// measure obj'
+    ''
+    ''
+    ''
+    'var MeasureObj = {'
+    '    sketch: undefined,'
+    '    helpTooltipElement: undefined,'
+    '    helpTooltip: undefined,'
+    '    measureTooltipElement: undefined,'
+    '    measureTooltip: undefined,'
+    '    draw: undefined,'
+    '    currentDrawType: '#39'line'#39','
+    '    continuePolygonMsg: '#39'Click to continue drawing the polygon'#39','
+    '    continueLineMsg: '#39'Click to continue drawing the line'#39','
+    '    pointerMoveHandler: function (evt) {'
+    '        var self = this;'
+    '        if (evt.dragging) {'
+    '            return;'
+    '        }'
+    '        var helpMsg = '#39'Click to start drawing'#39';'
+    ''
+    '        if (self.sketch) {'
+    '            var geom = (self.sketch.getGeometry());'
+    '            if (geom instanceof ol.geom.Polygon) {'
+    '                helpMsg = self.continuePolygonMsg;'
+    '            } else if (geom instanceof ol.geom.LineString) {'
+    '                helpMsg = self.continueLineMsg;'
+    '            }'
+    '        }'
+    ''
+    '        this.helpTooltipElement.innerHTML = helpMsg;'
+    '        this.helpTooltip.setPosition(evt.coordinate);'
+    '        this.helpTooltipElement.classList.remove('#39'hidden'#39');'
+    '    },'
+    '    formatLength: function (line) {'
+    '        var length = ol.sphere.getLength(line);'
+    '        var output;'
+    '        if (length > 100) {'
+    
+      '            output = (Math.round(length / 1000 * 100) / 100) + '#39 +
+      ' '#39' + '#39'km'#39';'
+    '        } else {'
+    
+      '            output = (Math.round(length * 100) / 100) + '#39' '#39' + '#39'm' +
+      #39';'
+    '        }'
+    '        return output;'
+    '    },'
+    '    formatArea: function (polygon) {'
+    '        var area = ol.sphere.getArea(polygon);'
+    '        var output;'
+    '        if (area > 10000) {'
+    
+      '            output = (Math.round(area / 1000000 * 100) / 100) + ' +
+      #39' '#39' + '#39'km<sup>2</sup>'#39';'
+    '        } else {'
+    
+      '            output = (Math.round(area * 100) / 100) + '#39' '#39' + '#39'm<s' +
+      'up>2</sup>'#39';'
+    '        }'
+    '        return output;'
+    '    },'
+    '    createHelpTooltip: function() {'
+    '        if (this.helpTooltipElement) {'
+    
+      '            this.helpTooltipElement.parentNode.removeChild(this.' +
+      'helpTooltipElement);'
+    '        }'
+    '        this.helpTooltipElement = document.createElement('#39'div'#39');'
+    '        this.helpTooltipElement.className = '#39'tooltip hidden'#39';'
+    '        this.helpTooltip = new ol.Overlay({'
+    '                element: this.helpTooltipElement,'
+    '                offset: [15, 0],'
+    '                positioning: '#39'center-left'#39
+    '            });'
+    '        this._map.addOverlay(this.helpTooltip);'
+    '    },'
+    '    createMeasureTooltip: function() {'
+    '        if (this.measureTooltipElement) {'
+    
+      '            this.measureTooltipElement.parentNode.removeChild(th' +
+      'is.measureTooltipElement);'
+    '        }'
+    
+      '        this.measureTooltipElement = document.createElement('#39'div' +
+      #39');'
+    
+      '        this.measureTooltipElement.className = '#39'tooltip tooltip-' +
+      'measure'#39';'
+    '        this.measureTooltip = new ol.Overlay({'
+    '                element: this.measureTooltipElement,'
+    '                offset: [0, -15],'
+    '                positioning: '#39'bottom-center'#39
+    '            });'
+    '        this._map.addOverlay(this.measureTooltip);'
+    '    },'
+    '    addInteraction: function () {'
+    '        var self = this;'
+    
+      '        var type = (self.currentDrawType == '#39'area'#39' ? '#39'Polygon'#39' :' +
+      ' '#39'LineString'#39');'
+    '        self.draw = new ol.interaction.Draw({'
+    '                source: self._source,'
+    '                type: type,'
+    '                style: new ol.style.Style({'
+    '                    fill: new ol.style.Fill({'
+    '                        color: '#39'rgba(255, 255, 255, 0.2)'#39
+    '                    }),'
+    '                    stroke: new ol.style.Stroke({'
+    '                        color: '#39'rgba(0, 0, 0, 0.5)'#39','
+    '                        lineDash: [10, 10],'
+    '                        width: 2'
+    '                    }),'
+    '                    image: new ol.style.Circle({'
+    '                        radius: 5,'
+    '                        stroke: new ol.style.Stroke({'
+    '                            color: '#39'rgba(0, 0, 0, 0.7)'#39
+    '                        }),'
+    '                        fill: new ol.style.Fill({'
+    '                            color: '#39'rgba(255, 255, 255, 0.2)'#39
+    '                        })'
+    '                    })'
+    '                })'
+    '            });'
+    ''
+    '        self._map.addInteraction(self.draw);'
+    ''
+    '        self.createMeasureTooltip();'
+    '        self.createHelpTooltip();'
+    ''
+    '        var listener;'
+    '        self.draw.on('#39'drawstart'#39', function (evt) {'
+    '            self.sketch = evt.feature;'
+    '            var tooltipCoord = evt.coordinate;'
+    ''
+    
+      '            listener = self.sketch.getGeometry().on('#39'change'#39', fu' +
+      'nction (evt) {'
+    '                    var geom = evt.target;'
+    '                    var output;'
+    '                    if (geom instanceof ol.geom.Polygon) {'
+    '                        output = self.formatArea(geom);'
+    
+      '                        tooltipCoord = geom.getInteriorPoint().g' +
+      'etCoordinates();'
+    
+      '                    } else if (geom instanceof ol.geom.LineStrin' +
+      'g) {'
+    '                        output = self.formatLength(geom);'
+    '                        tooltipCoord = geom.getLastCoordinate();'
+    '                    }'
+    
+      '                    self.measureTooltipElement.innerHTML = outpu' +
+      't;'
+    
+      '                    self.measureTooltip.setPosition(tooltipCoord' +
+      ');'
+    '                });'
+    '        }, this);'
+    ''
+    '        self.draw.on('#39'drawend'#39', function () {'
+    
+      '            self.measureTooltipElement.className = '#39'tooltip tool' +
+      'tip-static'#39';'
+    '            self.measureTooltip.setOffset([0, -7]);'
+    '            // unset sketch'
+    '            self.sketch = null;'
+    '            // unset tooltip so that a new one can be created'
+    '            self.measureTooltipElement = null;'
+    '            self.createMeasureTooltip();'
+    '            ol.Observable.unByKey(listener);'
+    '        }, this);'
+    '    },'
+    '    changeDrawType: function(type){'
+    '        this.currentDrawType = type;'
+    '        this.addInteraction();'
+    '    },'
+    '    init: function (map, source) {'
+    '        var self = this;'
+    '        self._map = map;'
+    '        self._source = source;'
+    ''
+    '        self._map.on('#39'pointermove'#39', function(evt){'
+    '            self.pointerMoveHandler.call(self, evt);'
+    '        });'
+    
+      '        self._map.getViewport().addEventListener('#39'mouseout'#39', fun' +
+      'ction () {'
+    '            self.helpTooltipElement.classList.add('#39'hidden'#39');'
+    '        });'
+    '        self.addInteraction();'
+    '    }'
+    '}'
+    ''
     '</script>')
   OnCreate = IWAppFormCreate
   Background.Fixed = False
@@ -256,7 +450,7 @@ object IWForm6: TIWForm6
       Align = alClient
       BorderOptions.NumericWidth = 0
       BorderOptions.Style = cbsNone
-      ActiveTab = IWCGTab12
+      ActiveTab = IWCGTab13
       object IWCGTab1: TIWCGJQTab
         Css = ''
         Version = '1.0'
@@ -729,6 +923,35 @@ object IWForm6: TIWForm6
           Required = False
           SubmitOnAsyncEvent = True
           ReadOnly = True
+        end
+      end
+      object IWCGTab13: TIWCGJQTab
+        Css = ''
+        Version = '1.0'
+        Caption = 'Measure'
+        TabIndex = 12
+        Tabs = OlTabsTop
+        object IWCGJQComboBoxEx2: TIWCGJQComboBoxEx
+          Left = 32
+          Top = 59
+          Width = 193
+          Height = 30
+          TabOrder = 46
+          Version = '1.0'
+          Items = <
+            item
+              Caption = 'Length (LineString)'
+              Value = 'length'
+            end
+            item
+              Caption = 'Area (Polygon)'
+              Value = 'area'
+            end>
+          Groups = <>
+          SelectedIndex = 0
+          JQComboBoxExOptions.Width = 191
+          JQComboBoxExOptions.OnChange.OnEvent = IWCGJQComboBoxEx2JQComboBoxExOptionsChange
+          Caption = ''
         end
       end
     end
