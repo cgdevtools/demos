@@ -304,6 +304,19 @@ object IWForm6: TIWForm6
     '    }'
     '}'
     ''
+    'var WFSGetFeatureRequest = new ol.format.WFS().writeGetFeature({'
+    '        srsName: '#39'EPSG:3857'#39','
+    '        featureNS: '#39'http://openstreemap.org'#39','
+    '        featurePrefix: '#39'osm'#39','
+    '        featureTypes: ['#39'water_areas'#39'],'
+    '        outputFormat: '#39'application/json'#39','
+    '        filter: ol.format.filter.and('
+    '          ol.format.filter.like('#39'name'#39', '#39'Mississippi*'#39'),'
+    '          ol.format.filter.equalTo('#39'waterway'#39', '#39'riverbank'#39')'
+    '        )'
+    '});'
+    ''
+    ''
     '</script>')
   OnCreate = IWAppFormCreate
   Background.Fixed = False

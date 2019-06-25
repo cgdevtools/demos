@@ -11,7 +11,7 @@ type
   TOlExampleCmd = (olcmdSimpleMap, olcmdBingMaps, olcmdTiledArcGISMapServer, olcmdSemiTransparentLayer,olcmdStaticImage, olcmdLayerGroup, olcmdControls, olcmdDragRotateZoom, olcmdTileTransitions,
     olcmdIconColors, olcmdScaleLine, olcmdPopup, olcmdDrawShapes, olcmdMagnify, olcmdDragDrop, olcmdAttributions, olcmdCanvasTiles, olcmdClusters, olcmdCustomDrawShape, olcmdMousePosition,
     olcmdWFS, olcmdExportMap, olcmdGraticule, olcmdOverlay, olcmdSelection, olcmdCartoDB, olcmdGPX, olcmdLocalizedOpenStreetMap, olcmdCustomAnimation, olcmdCustomPolygonStyles,
-    olcmdVectorLabelDecluttering, olcmdViewAjaxPropControl, olcmdMeasure);
+    olcmdVectorLabelDecluttering, olcmdViewAjaxPropControl, olcmdMeasure, olcmdWFSGetFeature);
 
   TOlExample = record
     TabIndex: Integer;
@@ -20,7 +20,7 @@ type
   end;
 
 const
-  OlExample: array[0..32] of TOlExample = (
+  OlExample: array[0..33] of TOlExample = (
     ( TabIndex: -1; Caption: 'Simple Map'; Command: olcmdSimpleMap ),
     ( TabIndex: 4; Caption: 'Bing Maps'; Command: olcmdBingMaps),
     ( TabIndex: -1; Caption: 'Tiled ArcGIS MapServer'; Command: olcmdTiledArcGISMapServer ),
@@ -53,7 +53,8 @@ const
     ( TabIndex: -1; Caption: 'Custom Polygon Styles'; Command: olcmdCustomPolygonStyles),
     ( TabIndex: -1; Caption: 'Vector Label Decluttering'; Command: olcmdVectorLabelDecluttering),
     ( TabIndex: 11; Caption: 'Async View Control'; Command: olcmdViewAjaxPropControl),
-    ( TabIndex: 12; Caption: 'Measure'; Command: olcmdMeasure)
+    ( TabIndex: 12; Caption: 'Measure'; Command: olcmdMeasure),
+    ( TabIndex: -1; Caption: 'WFS - GetFeature'; Command: olcmdWFSGetFeature)
   );
 
 type
@@ -163,6 +164,7 @@ type
     FCurr: TOlExample;
     FMapExportPngBase64: string;
     FMeasureExample: boolean;
+    FWFSGetFeature: boolean;
     procedure ProcessExample(ARec: TOlExample);
   public
   end;
@@ -426,7 +428,7 @@ var
   LOpacity: Extended;
   I: Integer;
 begin
-  LOpacity:= StrToInt(AParams.ValueFromIndex[3]) / 100;
+  LOpacity:= StrToInt(AParams.Values['IWCGJQSLIDER1_DATA']) / 100;
   for I := 0 to Ol.MapOptionsPluggableMap.Layers[1].LayerOptionsGroup.Layers.Count-1 do
     Ol.MapOptionsPluggableMap.Layers[1].LayerOptionsGroup.Layers[I].LayerOptions.Opacity:= LOpacity;
 end;
@@ -448,6 +450,7 @@ procedure TIWForm6.LeftMenuClick(Sender: TObject; AParams: TStringList);
 var
   Idx: Integer;
   ExampleRec: TOlExample;
+  JS: TIWCGJScript;
 begin
   Idx:= TIWCGPanelListItem(Sender).Tag;
   ExampleRec:= OlExample[Idx];
@@ -458,6 +461,26 @@ begin
     IWCGJQEventBinder1.AjaxReRender;
   if FMeasureExample then
     CGAddJavaScriptToAjaxResponse( Format('MeasureObj.init(%s.olmap, %s.getSource());', [Ol.OlJsObjName, Ol.MapOptionsPluggableMap.Layers[1].LayerOptions.jsGetOlObj]));
+  if FWFSGetFeature then
+  begin
+    JS:= TIWCGJScript.Create;
+    try
+      JS.Add( 'fetch("https://ahocevar.com/geoserver/wfs", {');
+      JS.Add( '  method: "POST",');
+      JS.Add( '  body: new XMLSerializer().serializeToString(WFSGetFeatureRequest)');
+      JS.Add( '}).then(function(response) {');
+      JS.Add( '  return response.json();');
+      JS.Add( '}).then(function(json) {');
+      JS.Add( '  var features = new ol.format.GeoJSON().readFeatures(json);');
+      JS.AddF('  %s.addFeatures(features);', [Ol.MapOptionsPluggableMap.Layers[1].LayerOptionsVectorLayer.SourceOptionsVectorSource.jsGetOlObj]);
+      JS.AddF('  %s.olmap.getView().fit(%s.getExtent());', [Ol.OlJsObjName, Ol.MapOptionsPluggableMap.Layers[1].LayerOptionsVectorLayer.SourceOptionsVectorSource.jsGetOlObj]);
+      JS.Add( '});');
+
+      CGAddJavaScriptToAjaxResponse(JS.Text);
+    finally
+      JS.Free;
+    end;
+  end;
 end;
 
 procedure TIWForm6.olBingMapsImagerySetJQComboBoxExOptionsChange(Sender: TObject; AParams: TStringList);
@@ -521,6 +544,7 @@ begin
   FCurr:= ARec;
   FMeasureExample:= False;
   FReRenderBinder:= False;
+  FWFSGetFeature:= False;
   IsAsync:= CGIsCallBackProcessing;
 
   JQNoty.JQNotificationNotyOptions.CloseNotification;
@@ -1689,6 +1713,37 @@ begin
         Ol.MapOptionsPluggableMap.View.Center.X:= '-11000000';
         Ol.MapOptionsPluggableMap.View.Center.Y:= '4600000';
         Ol.MapOptionsPluggableMap.View.Zoom:= 15;
+      end;
+    olcmdWFSGetFeature:
+      begin
+        FWFSGetFeature:= True;
+        with Ol.MapOptionsPluggableMap.Layers.Add do
+        begin
+          LayerType:= olltTileLayer;
+          LayerOptionsTileLayer.SourceType:= olststBingMaps;
+          LayerOptionsTileLayer.SourceOptionsBingMaps.Key:= BingMapsKey;
+          LayerOptionsTileLayer.SourceOptionsBingMaps.ImagerySet:= 'Aerial';
+        end;
+
+        with Ol.MapOptionsPluggableMap.Layers.Add do
+        begin
+          LayerType:= olltVectorLayer;
+          LayerOptionsVectorLayer.SourceType:= olsvtVectorSource;
+
+          with LayerOptionsVectorLayer.Style.Add do
+          begin
+            Stroke.Color.ColorRGB.Red:= '0';
+            Stroke.Color.ColorRGB.Green:= '0';
+            Stroke.Color.ColorRGB.Blue:= '255';
+            Stroke.Color.ColorRGB.Alpha:= 1;
+            Stroke.Width:= 2;
+          end;
+        end;
+
+        Ol.MapOptionsPluggableMap.View.Center.X := '-8908887,277395891';
+        Ol.MapOptionsPluggableMap.View.Center.Y:= '5381918,072437216';
+        Ol.MapOptionsPluggableMap.View.Zoom := 12;
+        Ol.MapOptionsPluggableMap.View.MaxZoom := 19;
       end;
     end;
 
